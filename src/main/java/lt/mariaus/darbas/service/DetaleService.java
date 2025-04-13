@@ -1,6 +1,7 @@
 package lt.mariaus.darbas.service;
 
 import jakarta.transaction.Transactional;
+import lt.mariaus.darbas.converter.DetaleConverter;
 import lt.mariaus.darbas.entity.Automobilis;
 import lt.mariaus.darbas.entity.Detale;
 import lt.mariaus.darbas.entity.Sandelys;
@@ -9,8 +10,10 @@ import lt.mariaus.darbas.repository.DetaleRepository;
 import lt.mariaus.darbas.repository.SandelysRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import java.math.BigDecimal;
+import java.util.Random;
+import java.util.List;
+
 
 @Service
 public class DetaleService {
@@ -21,33 +24,102 @@ public class DetaleService {
     @Autowired
     private SandelysRepository sandelysRepository;
 
+
+    @Autowired
+    private DetaleConverter detaleConverter;
+
+    public List<Detale> getAllDetales() {
+        return detaleRepository.findAll();
+    }
+
+
+    public Detale getDetaleById(Long id) {
+        return detaleRepository.findById(id).orElse(null);
+    }
+
+//    public List<Detale> searchDetales(String adresas, String marke, String vinKodas) {
+//        return detaleRepository.findByCustomFilter(vinKodas, marke, adresas);
+//    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     @Transactional
     public void loadTestData() {
+        if (detaleRepository.count() > 0) {
+            return; // Testiniai duomenys jau yra
+        }
+
+        // Sukuriam sandėlius
+        String[] sandeliuPavadinimai = {"Vilniaus Sandėlis", "Kauno Centras", "Klaipėdos Sandėlis", "Šiaulių Terminalas", "Panevėžio Baze"};
+        String[] sandeliuAdresai = {"Vilniaus g. 1", "Kauno g. 5", "Taikos pr. 10", "Tilžės g. 7", "Respublikos g. 3"};
+
         Sandelys[] sandelysArray = new Sandelys[5];
         for (int i = 0; i < 5; i++) {
             Sandelys sandelys = new Sandelys();
-            sandelys.setPavadinimas("Sandelys " + (i + 1));
-            sandelys.setAdresas("Adresas " + (i + 1));
+            sandelys.setPavadinimas(sandeliuPavadinimai[i]);
+            sandelys.setAdresas(sandeliuAdresai[i]);
             sandelysRepository.save(sandelys);
             sandelysArray[i] = sandelys;
         }
+
+        // Sukuriam automobilius su atsitiktiniais VIN
+        String[] markes = {"Audi", "BMW", "Volkswagen", "Toyota", "Mercedes-Benz", "Ford", "Honda", "Nissan", "Peugeot", "Volvo"};
         Automobilis[] automobiliaiArray = new Automobilis[10];
         for (int i = 0; i < 10; i++) {
             Automobilis automobilis = new Automobilis();
-            automobilis.setVinKodas("VIN" + (i + 1));
-            automobilis.setMarke("Marke " + (i + 1));
+            automobilis.setVinKodas(generateRandomVin());
+            automobilis.setMarke(markes[i]);
             automobilisRepository.save(automobilis);
             automobiliaiArray[i] = automobilis;
         }
+
+        // Sukuriam detales
+        String[] detaliuPavadinimai = {
+                "Alyvos filtras", "Oro filtras", "Kuro siurblys", "Stabdžių diskas", "Radiatorius",
+                "Akumuliatorius", "Sankaba", "Diržas", "Amortizatorius", "Lemputė",
+                "Generatorius", "Starteris", "Vandens pompa", "Žvakių rinkinys", "Stabdžių kaladėlės",
+                "Vairo traukė", "Variklio pagalvė", "Turbo", "EGR vožtuvas", "Termostatas"
+        };
+
         for (int i = 0; i < 20; i++) {
             Detale detale = new Detale();
-            detale.setPavadinimas("Detale " + (i + 1));
-            detale.setKaina(BigDecimal.valueOf(50 + (i * 10))); // Kaina kas kartą padidėja
-            detale.setKiekis(10L + (i % 10)); // Kiekis su pasikartojimais
-            detale.setAutomobilis(automobiliaiArray[i % 10]); // Susiejame su automobiliu pagal indeksą
-            detale.setSandelys(sandelysArray[i % 5]); // Susiejame su sandėliu pagal indeksą
+            detale.setPavadinimas(detaliuPavadinimai[i]);
+            detale.setKaina(BigDecimal.valueOf(25 + (i * 7))); // Pvz: nuo 25 iki 160
+            detale.setKiekis(5L + (i % 10)); // Pvz: 5–14 vnt
+            detale.setAutomobilis(automobiliaiArray[i % 10]);
+            detale.setSandelys(sandelysArray[i % 5]);
             detaleRepository.save(detale);
         }
     }
 
+    // Naudojamas VIN generatorius
+    private static final String VIN_SYMBOLS = "ABCDEFGHJKLMNPRSTUVWXYZ0123456789"; // Be I, O, Q
+    private static final Random random = new Random();
+
+    private String generateRandomVin() {
+        StringBuilder vin = new StringBuilder();
+        for (int i = 0; i < 17; i++) {
+            vin.append(VIN_SYMBOLS.charAt(random.nextInt(VIN_SYMBOLS.length())));
+        }
+        return vin.toString();
+    }
+
+
 }
+
+
