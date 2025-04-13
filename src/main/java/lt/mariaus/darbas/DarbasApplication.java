@@ -1,6 +1,5 @@
 package lt.mariaus.darbas;
 
-
 import lt.mariaus.darbas.service.DetaleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;

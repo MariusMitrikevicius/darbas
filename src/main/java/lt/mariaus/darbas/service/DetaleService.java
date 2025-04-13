@@ -2,6 +2,7 @@ package lt.mariaus.darbas.service;
 
 import jakarta.transaction.Transactional;
 import lt.mariaus.darbas.converter.DetaleConverter;
+import lt.mariaus.darbas.dto.DetaleDTO;
 import lt.mariaus.darbas.entity.Automobilis;
 import lt.mariaus.darbas.entity.Detale;
 import lt.mariaus.darbas.entity.Sandelys;
@@ -14,7 +15,6 @@ import java.math.BigDecimal;
 import java.util.Random;
 import java.util.List;
 
-
 @Service
 public class DetaleService {
     @Autowired
@@ -23,51 +23,62 @@ public class DetaleService {
     private DetaleRepository detaleRepository;
     @Autowired
     private SandelysRepository sandelysRepository;
-
-
     @Autowired
     private DetaleConverter detaleConverter;
-
-    public List<Detale> getAllDetales() {
-        return detaleRepository.findAll();
-    }
-
 
     public Detale getDetaleById(Long id) {
         return detaleRepository.findById(id).orElse(null);
     }
 
-//    public List<Detale> searchDetales(String adresas, String marke, String vinKodas) {
-//        return detaleRepository.findByCustomFilter(vinKodas, marke, adresas);
-//    }
+    public Detale saveDetale(Detale detale) {
+        return detaleRepository.save(detale);
+    }
 
+    public List<Detale> searchDetales(String adresas, String marke, String vinKodas) {
+        return detaleRepository.findByCustomFilter(vinKodas, marke, adresas);
+    }
 
+    @Transactional
+    public void deleteDetale(Long id) {
+        Detale detale = detaleRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Detalė nerasta ID: " + id));
+        detaleRepository.delete(detale);
+    }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    @Transactional
+    public Detale updateDetale(Long id, DetaleDTO dto) {
+        Detale existing = detaleRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Detalė nerasta ID: " + id));
+        if (dto.getPavadinimas() != null) {
+            existing.setPavadinimas(dto.getPavadinimas());
+        }
+        if (dto.getKaina() != null) {
+            existing.setKaina(dto.getKaina());
+        }
+        if (dto.getKiekis() != null) {
+            existing.setKiekis(dto.getKiekis());
+        }
+        if (dto.getAutomobilisId() != null) {
+            Automobilis automobilis = automobilisRepository.findById(dto.getAutomobilisId())
+                    .orElseThrow(() -> new RuntimeException("Automobilis nerastas ID: " + dto.getAutomobilisId()));
+            existing.setAutomobilis(automobilis);
+        }
+        if (dto.getSandelysId() != null) {
+            Sandelys sandelys = sandelysRepository.findById(dto.getSandelysId())
+                    .orElseThrow(() -> new RuntimeException("Sandėlys nerastas ID: " + dto.getSandelysId()));
+            existing.setSandelys(sandelys);
+        }
+        return detaleRepository.save(existing);
+    }
 
     @Transactional
     public void loadTestData() {
         if (detaleRepository.count() > 0) {
-            return; // Testiniai duomenys jau yra
+            return;
         }
 
-        // Sukuriam sandėlius
         String[] sandeliuPavadinimai = {"Vilniaus Sandėlis", "Kauno Centras", "Klaipėdos Sandėlis", "Šiaulių Terminalas", "Panevėžio Baze"};
         String[] sandeliuAdresai = {"Vilniaus g. 1", "Kauno g. 5", "Taikos pr. 10", "Tilžės g. 7", "Respublikos g. 3"};
-
         Sandelys[] sandelysArray = new Sandelys[5];
         for (int i = 0; i < 5; i++) {
             Sandelys sandelys = new Sandelys();
@@ -77,7 +88,6 @@ public class DetaleService {
             sandelysArray[i] = sandelys;
         }
 
-        // Sukuriam automobilius su atsitiktiniais VIN
         String[] markes = {"Audi", "BMW", "Volkswagen", "Toyota", "Mercedes-Benz", "Ford", "Honda", "Nissan", "Peugeot", "Volvo"};
         Automobilis[] automobiliaiArray = new Automobilis[10];
         for (int i = 0; i < 10; i++) {
@@ -88,14 +98,12 @@ public class DetaleService {
             automobiliaiArray[i] = automobilis;
         }
 
-        // Sukuriam detales
         String[] detaliuPavadinimai = {
                 "Alyvos filtras", "Oro filtras", "Kuro siurblys", "Stabdžių diskas", "Radiatorius",
                 "Akumuliatorius", "Sankaba", "Diržas", "Amortizatorius", "Lemputė",
                 "Generatorius", "Starteris", "Vandens pompa", "Žvakių rinkinys", "Stabdžių kaladėlės",
                 "Vairo traukė", "Variklio pagalvė", "Turbo", "EGR vožtuvas", "Termostatas"
         };
-
         for (int i = 0; i < 20; i++) {
             Detale detale = new Detale();
             detale.setPavadinimas(detaliuPavadinimai[i]);
@@ -107,7 +115,6 @@ public class DetaleService {
         }
     }
 
-    // Naudojamas VIN generatorius
     private static final String VIN_SYMBOLS = "ABCDEFGHJKLMNPRSTUVWXYZ0123456789"; // Be I, O, Q
     private static final Random random = new Random();
 
@@ -119,7 +126,7 @@ public class DetaleService {
         return vin.toString();
     }
 
-
 }
+
 
 

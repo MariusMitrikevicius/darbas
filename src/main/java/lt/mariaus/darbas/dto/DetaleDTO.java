@@ -2,7 +2,6 @@ package lt.mariaus.darbas.dto;
 
 import lombok.Getter;
 import lombok.Setter;
-
 import java.math.BigDecimal;
 
 @Getter
@@ -12,7 +11,13 @@ public class DetaleDTO {
     private String pavadinimas;
     private BigDecimal kaina;
     private Long kiekis;
-    private Long automobilisId; // Nuoroda į automobilio ID
-    private Long sandelysId;  // Nuoroda į sandėlio ID
+
+    private Long automobilisId;
+    private String marke;
+    private String vinKodas;
+
+    private Long sandelysId;
+    private String sandelioAdresas;
 }
+
 

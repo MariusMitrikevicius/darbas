@@ -1,7 +1,9 @@
 package lt.mariaus.darbas.converter;
 
 import lt.mariaus.darbas.dto.DetaleDTO;
+import lt.mariaus.darbas.entity.Automobilis;
 import lt.mariaus.darbas.entity.Detale;
+import lt.mariaus.darbas.entity.Sandelys;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -13,22 +15,28 @@ public class DetaleConverter {
         dto.setPavadinimas(detale.getPavadinimas());
         dto.setKaina(detale.getKaina());
         dto.setKiekis(detale.getKiekis());
-        if (detale.getAutomobilis() != null) {
-            dto.setAutomobilisId(detale.getAutomobilis().getId());
-        }
-        if (detale.getSandelys() != null) {
-            dto.setSandelysId(detale.getSandelys().getId());
-        }
+        dto.setAutomobilisId(detale.getAutomobilis().getId());
+        dto.setMarke(detale.getAutomobilis().getMarke());
+        dto.setVinKodas(detale.getAutomobilis().getVinKodas());
+        dto.setSandelysId(detale.getSandelys().getId());
+        dto.setSandelioAdresas(detale.getSandelys().getAdresas());
         return dto;
     }
-
-    public Detale toEntity(DetaleDTO dto) {
+    public Detale convertToEntity(DetaleDTO detaleDTO, Automobilis automobilis, Sandelys sandelys) {
+        // Kodas, kuris konvertuoja DTO į Entity, naudodamas automobilį ir sandėlį
         Detale detale = new Detale();
-        detale.setId(dto.getId());
-        detale.setPavadinimas(dto.getPavadinimas());
-        detale.setKaina(dto.getKaina());
-        detale.setKiekis(dto.getKiekis());
+        detale.setPavadinimas(detaleDTO.getPavadinimas());
+        detale.setKaina(detaleDTO.getKaina());
+        detale.setKiekis(detaleDTO.getKiekis());
+        detale.setAutomobilis(automobilis);  // Užpildyk automobilį
+        detale.setSandelys(sandelys);  // Užpildyk sandėlį
         return detale;
     }
 }
+
+
+
+
+
+
 

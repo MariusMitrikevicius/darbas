@@ -1,9 +1,9 @@
 package lt.mariaus.darbas.entity;
+
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-
 import java.math.BigDecimal;
 
 @Getter
@@ -25,14 +25,12 @@ public class Detale {
     @Column(nullable = false)
     private Long kiekis;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "automobilis_id", nullable = false)
     private Automobilis automobilis;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "sandelys_id")
     private Sandelys sandelys;
-
 }
-
 
