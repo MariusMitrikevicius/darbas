@@ -10,7 +10,6 @@ import java.util.List;
 
 @Repository
     public interface DetaleRepository extends JpaRepository<Detale, Long> {
-
         @Query("SELECT d FROM Detale d WHERE " +
                 "(:vinKodas IS NULL OR d.automobilis.vinKodas LIKE %:vinKodas%) AND " +
                 "(:marke IS NULL OR d.automobilis.marke LIKE %:marke%) AND " +
@@ -19,7 +18,6 @@ import java.util.List;
                 @Param("vinKodas") String vinKodas,
                 @Param("marke") String marke,
                 @Param("adresas") String adresas);
-
     }
 
 

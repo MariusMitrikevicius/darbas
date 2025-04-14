@@ -6,7 +6,6 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class AutomobilisConverter {
-
     public AutomobilisDTO toDTO(Automobilis automobilis) {
         AutomobilisDTO dto = new AutomobilisDTO();
         dto.setId(automobilis.getId());
@@ -14,7 +13,6 @@ public class AutomobilisConverter {
         dto.setMarke(automobilis.getMarke());
         return dto;
     }
-
     public Automobilis toEntity(AutomobilisDTO dto) {
         Automobilis automobilis = new Automobilis();
         automobilis.setId(dto.getId());

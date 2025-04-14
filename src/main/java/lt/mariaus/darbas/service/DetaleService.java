@@ -1,6 +1,7 @@
 package lt.mariaus.darbas.service;
 
 import jakarta.transaction.Transactional;
+import lt.mariaus.darbas.DetalesTipas;
 import lt.mariaus.darbas.converter.DetaleConverter;
 import lt.mariaus.darbas.dto.DetaleDTO;
 import lt.mariaus.darbas.entity.Automobilis;
@@ -28,14 +29,6 @@ public class DetaleService {
 
     public Detale getDetaleById(Long id) {
         return detaleRepository.findById(id).orElse(null);
-    }
-
-    public Detale saveDetale(Detale detale) {
-        return detaleRepository.save(detale);
-    }
-
-    public List<Detale> searchDetales(String adresas, String marke, String vinKodas) {
-        return detaleRepository.findByCustomFilter(vinKodas, marke, adresas);
     }
 
     @Transactional
@@ -68,6 +61,9 @@ public class DetaleService {
                     .orElseThrow(() -> new RuntimeException("Sandėlys nerastas ID: " + dto.getSandelysId()));
             existing.setSandelys(sandelys);
         }
+        if (dto.getTipas() != null) {
+            existing.setTipas(dto.getTipas());
+        }
         return detaleRepository.save(existing);
     }
 
@@ -76,7 +72,6 @@ public class DetaleService {
         if (detaleRepository.count() > 0) {
             return;
         }
-
         String[] sandeliuPavadinimai = {"Vilniaus Sandėlis", "Kauno Centras", "Klaipėdos Sandėlis", "Šiaulių Terminalas", "Panevėžio Baze"};
         String[] sandeliuAdresai = {"Vilniaus g. 1", "Kauno g. 5", "Taikos pr. 10", "Tilžės g. 7", "Respublikos g. 3"};
         Sandelys[] sandelysArray = new Sandelys[5];
@@ -87,7 +82,6 @@ public class DetaleService {
             sandelysRepository.save(sandelys);
             sandelysArray[i] = sandelys;
         }
-
         String[] markes = {"Audi", "BMW", "Volkswagen", "Toyota", "Mercedes-Benz", "Ford", "Honda", "Nissan", "Peugeot", "Volvo"};
         Automobilis[] automobiliaiArray = new Automobilis[10];
         for (int i = 0; i < 10; i++) {
@@ -97,7 +91,6 @@ public class DetaleService {
             automobilisRepository.save(automobilis);
             automobiliaiArray[i] = automobilis;
         }
-
         String[] detaliuPavadinimai = {
                 "Alyvos filtras", "Oro filtras", "Kuro siurblys", "Stabdžių diskas", "Radiatorius",
                 "Akumuliatorius", "Sankaba", "Diržas", "Amortizatorius", "Lemputė",
@@ -111,13 +104,14 @@ public class DetaleService {
             detale.setKiekis(5L + (i % 10)); // Pvz: 5–14 vnt
             detale.setAutomobilis(automobiliaiArray[i % 10]);
             detale.setSandelys(sandelysArray[i % 5]);
+            DetalesTipas[] tipai = DetalesTipas.values();
+            DetalesTipas randomTipas = tipai[new Random().nextInt(tipai.length)];
+            detale.setTipas(randomTipas);
             detaleRepository.save(detale);
         }
     }
-
     private static final String VIN_SYMBOLS = "ABCDEFGHJKLMNPRSTUVWXYZ0123456789"; // Be I, O, Q
     private static final Random random = new Random();
-
     private String generateRandomVin() {
         StringBuilder vin = new StringBuilder();
         for (int i = 0; i < 17; i++) {
@@ -126,6 +120,25 @@ public class DetaleService {
         return vin.toString();
     }
 
+    public List<Detale> searchDetales(String adresas, String marke, String vinKodas) {
+        List<Detale> list = detaleRepository.findByCustomFilter(vinKodas, marke, adresas);
+        System.out.println("──────────────────────────────────────────────────────────────────────────────");
+        System.out.printf("| %-3s | %-20s | %-10s | %-6s | %-10s | %-15s |\n",
+                "ID", "Pavadinimas", "Kaina", "Kiekis", "Markė", "Sandėlys");
+        System.out.println("──────────────────────────────────────────────────────────────────────────────");
+        for (Detale d : list) {
+            System.out.printf("| %-3d | %-20s | %-10s | %-6d | %-10s | %-15s |\n",
+                    d.getId(),
+                    d.getPavadinimas(),
+                    d.getKaina(),
+                    d.getKiekis(),
+                    d.getAutomobilis().getMarke(),
+                    d.getSandelys().getPavadinimas()
+            );
+        }
+        System.out.println("──────────────────────────────────────────────────────────────────────────────");
+        return list;
+    }
 }
 
 

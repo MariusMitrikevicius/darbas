@@ -6,7 +6,6 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class SandelysConverter {
-
     public SandelysDTO toDTO(Sandelys sandelys) {
         SandelysDTO dto = new SandelysDTO();
         dto.setId(sandelys.getId());
@@ -14,7 +13,6 @@ public class SandelysConverter {
         dto.setAdresas(sandelys.getAdresas());
         return dto;
     }
-
     public Sandelys toEntity(SandelysDTO dto) {
         Sandelys sandelys = new Sandelys();
         sandelys.setId(dto.getId());

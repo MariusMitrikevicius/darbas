@@ -8,7 +8,6 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class DetaleConverter {
-
     public DetaleDTO convertToDto(Detale detale) {
         DetaleDTO dto = new DetaleDTO();
         dto.setId(detale.getId());
@@ -20,16 +19,18 @@ public class DetaleConverter {
         dto.setVinKodas(detale.getAutomobilis().getVinKodas());
         dto.setSandelysId(detale.getSandelys().getId());
         dto.setSandelioAdresas(detale.getSandelys().getAdresas());
+        dto.setTipas(detale.getTipas());
         return dto;
     }
     public Detale convertToEntity(DetaleDTO detaleDTO, Automobilis automobilis, Sandelys sandelys) {
-        // Kodas, kuris konvertuoja DTO į Entity, naudodamas automobilį ir sandėlį
+
         Detale detale = new Detale();
         detale.setPavadinimas(detaleDTO.getPavadinimas());
         detale.setKaina(detaleDTO.getKaina());
         detale.setKiekis(detaleDTO.getKiekis());
-        detale.setAutomobilis(automobilis);  // Užpildyk automobilį
-        detale.setSandelys(sandelys);  // Užpildyk sandėlį
+        detale.setAutomobilis(automobilis);
+        detale.setSandelys(sandelys);
+        detale.setTipas(detaleDTO.getTipas());
         return detale;
     }
 }
