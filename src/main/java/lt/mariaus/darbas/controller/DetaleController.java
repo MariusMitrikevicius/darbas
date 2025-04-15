@@ -2,11 +2,13 @@ package lt.mariaus.darbas.controller;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lt.mariaus.darbas.ApiResponse;
 import lt.mariaus.darbas.converter.DetaleConverter;
 import lt.mariaus.darbas.dto.DetaleDTO;
 import lt.mariaus.darbas.entity.Automobilis;
 import lt.mariaus.darbas.entity.Detale;
 import lt.mariaus.darbas.entity.Sandelys;
+import lt.mariaus.darbas.exception.NotFoundException;
 import lt.mariaus.darbas.repository.AutomobilisRepository;
 import lt.mariaus.darbas.repository.DetaleRepository;
 import lt.mariaus.darbas.repository.SandelysRepository;
@@ -15,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 
 @RestController
@@ -29,18 +32,20 @@ public class DetaleController {
     private final DetaleRepository detaleRepository;
 
     @GetMapping("/{id}")
-    public ResponseEntity<DetaleDTO> getDetaleById(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<DetaleDTO>> getDetaleById(@PathVariable Long id) {
         Detale detale = detaleService.getDetaleById(id);
         if (detale != null) {
             DetaleDTO dto = detaleConverter.convertToDto(detale);
-            return ResponseEntity.ok(dto);
+            ApiResponse<DetaleDTO> response = new ApiResponse<>(true, "Detale rastas", dto);
+            return ResponseEntity.ok(response);
         } else {
-            return ResponseEntity.notFound().build();
+            ApiResponse<DetaleDTO> response = new ApiResponse<>(false, "Detale nerasta", null);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<DetaleDTO>> searchDetales(
+    public ResponseEntity<ApiResponse<List<DetaleDTO>>> searchDetales(
             @RequestParam(required = false) String adresas,
             @RequestParam(required = false) String marke,
             @RequestParam(required = false) String vinKodas
@@ -49,51 +54,62 @@ public class DetaleController {
         List<DetaleDTO> dtoList = filteredDetales.stream()
                 .map(detaleConverter::convertToDto)
                 .toList();
-        return ResponseEntity.ok(dtoList);
+        String message = dtoList.isEmpty() ?
+                "Pagal pateiktus filtrus detalės nerastos" :
+                "Filtruotos detalės sėkmingai gautos";
+        return ResponseEntity.ok(new ApiResponse<>(true, message, dtoList));
     }
 
     @PostMapping
-    public ResponseEntity<DetaleDTO> createDetale(@RequestBody DetaleDTO detaleDTO) {
-        Automobilis automobilis = automobilisRepository.findById(detaleDTO.getAutomobilisId())
-                .orElseThrow(() -> new RuntimeException("Automobilis nerastas"));
+    public ResponseEntity<ApiResponse<DetaleDTO>> createDetale(@RequestBody DetaleDTO detaleDTO) {
+        try {
+            Automobilis automobilis = automobilisRepository.findById(detaleDTO.getAutomobilisId())
+                    .orElseThrow(() -> new NotFoundException("Automobilis nerastas"));
 
-        Sandelys sandelys = sandelysRepository.findById(detaleDTO.getSandelysId())
-                .orElseThrow(() -> new RuntimeException("Sandėlys nerastas"));
+            Sandelys sandelys = sandelysRepository.findById(detaleDTO.getSandelysId())
+                    .orElseThrow(() -> new NotFoundException("Sandėlys nerastas"));
 
-        Detale detale = detaleConverter.convertToEntity(detaleDTO, automobilis, sandelys);
-        detale = detaleRepository.save(detale);
+            Detale detale = detaleConverter.convertToEntity(detaleDTO, automobilis, sandelys);
+            detale = detaleRepository.save(detale);
 
-        DetaleDTO createdDto = detaleConverter.convertToDto(detale);
-        return ResponseEntity.ok(createdDto);
+            DetaleDTO createdDto = detaleConverter.convertToDto(detale);
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .body(new ApiResponse<>(true, "Detalė sėkmingai sukurta", createdDto));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new ApiResponse<>(false, "Klaida kuriant detalę: " + e.getMessage(), null));
+        }
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<DetaleDTO> updateDetale(@PathVariable Long id, @RequestBody DetaleDTO detaleDTO) {
-        Detale updatedDetale = detaleService.updateDetale(id, detaleDTO);
-        DetaleDTO updatedDetaleDTO = detaleConverter.convertToDto(updatedDetale);
-        return ResponseEntity.ok(updatedDetaleDTO);
+    public ResponseEntity<ApiResponse<DetaleDTO>> updateDetale(@PathVariable Long id, @RequestBody DetaleDTO detaleDTO) {
+        try {
+            Detale updatedDetale = detaleService.updateDetale(id, detaleDTO);
+            DetaleDTO updatedDetaleDTO = detaleConverter.convertToDto(updatedDetale);
+            return ResponseEntity.ok(new ApiResponse<>(true, "Detalė sėkmingai atnaujinta", updatedDetaleDTO));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ApiResponse<>(false, "Klaida atnaujinant: " + e.getMessage(), null));
+        }
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<DetaleDTO> patchDetale(@PathVariable Long id, @RequestBody DetaleDTO detaleDTO) {
-        Detale detale = detaleService.updateDetale(id, detaleDTO);
-        DetaleDTO response = detaleConverter.convertToDto(detale);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<ApiResponse<DetaleDTO>> patchDetale(@PathVariable Long id, @RequestBody DetaleDTO detaleDTO) {
+        try {
+            Detale detale = detaleService.updateDetale(id, detaleDTO);
+            DetaleDTO response = detaleConverter.convertToDto(detale);
+            return ResponseEntity.ok(new ApiResponse<>(true, "Detalė sėkmingai atnaujinta (PATCH)", response));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ApiResponse<>(false, "Klaida PATCH metu: " + e.getMessage(), null));
+        }
     }
 
+
     @DeleteMapping("/{id}")
-    @Transactional
-    public ResponseEntity<Void> deleteDetale(@PathVariable Long id) {
-        try {
-            if (id == null) {
-                throw new IllegalArgumentException("ID negali būti null");
-            }
-            detaleService.deleteDetale(id);
-            return ResponseEntity.noContent().build();
-        } catch (Exception e) {
-            e.printStackTrace(); // laikinai, kad pamatytum klaidą
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+    public ResponseEntity<ApiResponse<Void>> deleteDetale(@PathVariable Long id) {
+        detaleService.deleteDetale(id);
+        return ResponseEntity.ok(new ApiResponse<>(true, "Detalė sėkmingai ištrinta", null));
     }
 }
 

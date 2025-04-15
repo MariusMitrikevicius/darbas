@@ -11,7 +11,10 @@ import lt.mariaus.darbas.repository.AutomobilisRepository;
 import lt.mariaus.darbas.repository.DetaleRepository;
 import lt.mariaus.darbas.repository.SandelysRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.stereotype.Service;
+import lt.mariaus.darbas.exception.NotFoundException;
+
 import java.math.BigDecimal;
 import java.util.Random;
 import java.util.List;
@@ -24,24 +27,25 @@ public class DetaleService {
     private DetaleRepository detaleRepository;
     @Autowired
     private SandelysRepository sandelysRepository;
+
+
     @Autowired
     private DetaleConverter detaleConverter;
-
-    public Detale getDetaleById(Long id) {
+        public Detale getDetaleById(Long id) {
         return detaleRepository.findById(id).orElse(null);
     }
 
     @Transactional
     public void deleteDetale(Long id) {
         Detale detale = detaleRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Detalė nerasta ID: " + id));
+                .orElseThrow(() -> new NotFoundException("Detalė nerasta ID: " + id));
         detaleRepository.delete(detale);
     }
 
     @Transactional
     public Detale updateDetale(Long id, DetaleDTO dto) {
         Detale existing = detaleRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Detalė nerasta ID: " + id));
+                .orElseThrow(() -> new NotFoundException("Detalė nerasta ID: " + id));
         if (dto.getPavadinimas() != null) {
             existing.setPavadinimas(dto.getPavadinimas());
         }
@@ -53,12 +57,12 @@ public class DetaleService {
         }
         if (dto.getAutomobilisId() != null) {
             Automobilis automobilis = automobilisRepository.findById(dto.getAutomobilisId())
-                    .orElseThrow(() -> new RuntimeException("Automobilis nerastas ID: " + dto.getAutomobilisId()));
+                    .orElseThrow(() -> new NotFoundException("Automobilis nerastas ID: " + dto.getAutomobilisId()));
             existing.setAutomobilis(automobilis);
         }
         if (dto.getSandelysId() != null) {
             Sandelys sandelys = sandelysRepository.findById(dto.getSandelysId())
-                    .orElseThrow(() -> new RuntimeException("Sandėlys nerastas ID: " + dto.getSandelysId()));
+                    .orElseThrow(() -> new NotFoundException("Sandėlys nerastas ID: " + dto.getSandelysId()));
             existing.setSandelys(sandelys);
         }
         if (dto.getTipas() != null) {
@@ -140,6 +144,3 @@ public class DetaleService {
         return list;
     }
 }
-
-
-
