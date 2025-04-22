@@ -81,6 +81,46 @@ public class DetaleController {
         }
     }
 
+    @PostMapping("/tuščia")
+    public ResponseEntity<ApiResponse<DetaleDTO>> createDetaleTuščiojeLenteleje(@RequestBody DetaleDTO detaleDTO) {
+        try {
+            // Užtikrinam, kad būtų bent vienas automobilis
+            Automobilis automobilis = automobilisRepository.findAll().stream().findFirst().orElseGet(() -> {
+                Automobilis a = new Automobilis();
+                a.setMarke("Nenumatyta");
+                a.setVinKodas("DEFAULTVIN");
+                return automobilisRepository.save(a);
+            });
+
+            // Užtikrinam, kad būtų bent vienas sandėlys
+            Sandelys sandelys = sandelysRepository.findAll().stream().findFirst().orElseGet(() -> {
+                Sandelys s = new Sandelys();
+                s.setPavadinimas("Nenumatytas Sandėlys");
+                s.setAdresas("Nenurodytas Adresas");
+                return sandelysRepository.save(s);
+            });
+
+            // Konvertuojam, saugom, grąžinam
+            Detale detale = detaleConverter.convertToEntity(detaleDTO, automobilis, sandelys);
+            detale = detaleRepository.save(detale);
+            DetaleDTO responseDto = detaleConverter.convertToDto(detale);
+
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .body(new ApiResponse<>(true, "Detalė sėkmingai sukurta tuščioje lentelėje", responseDto));
+        } catch (Exception e) {
+            e.printStackTrace(); // ← pridėk šitą kad matytum klaidą
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new ApiResponse<>(false, "Įvyko klaida: " + e.getMessage(), null));
+        }
+    }
+
+
+
+
+
+
+
+
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<DetaleDTO>> updateDetale(@PathVariable Long id, @RequestBody DetaleDTO detaleDTO) {
         try {
