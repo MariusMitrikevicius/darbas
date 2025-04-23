@@ -5,7 +5,9 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import lt.mariaus.darbas.DetalesTipas;
+
 import java.math.BigDecimal;
+
 @Getter
 @Setter
 @Entity
@@ -29,4 +31,3 @@ public class Detale {
     @Enumerated(EnumType.STRING)
     private DetalesTipas tipas;
 }
-

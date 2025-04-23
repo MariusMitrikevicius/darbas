@@ -10,4 +10,3 @@ public class AutomobilisDTO {
     private String vinKodas;
     private String marke;
 }
-

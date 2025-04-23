@@ -1,14 +1,10 @@
 package lt.mariaus.darbas.controller;
 
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lt.mariaus.darbas.ApiResponse;
 import lt.mariaus.darbas.converter.DetaleConverter;
 import lt.mariaus.darbas.dto.DetaleDTO;
-import lt.mariaus.darbas.entity.Automobilis;
 import lt.mariaus.darbas.entity.Detale;
-import lt.mariaus.darbas.entity.Sandelys;
-import lt.mariaus.darbas.exception.NotFoundException;
 import lt.mariaus.darbas.repository.AutomobilisRepository;
 import lt.mariaus.darbas.repository.DetaleRepository;
 import lt.mariaus.darbas.repository.SandelysRepository;
@@ -63,16 +59,8 @@ public class DetaleController {
     @PostMapping
     public ResponseEntity<ApiResponse<DetaleDTO>> createDetale(@RequestBody DetaleDTO detaleDTO) {
         try {
-            Automobilis automobilis = automobilisRepository.findById(detaleDTO.getAutomobilisId())
-                    .orElseThrow(() -> new NotFoundException("Automobilis nerastas"));
-
-            Sandelys sandelys = sandelysRepository.findById(detaleDTO.getSandelysId())
-                    .orElseThrow(() -> new NotFoundException("Sandėlys nerastas"));
-
-            Detale detale = detaleConverter.convertToEntity(detaleDTO, automobilis, sandelys);
-            detale = detaleRepository.save(detale);
-
-            DetaleDTO createdDto = detaleConverter.convertToDto(detale);
+            Detale createdDetale = detaleService.createDetaleWithDependencies(detaleDTO);
+            DetaleDTO createdDto = detaleConverter.convertToDto(createdDetale);
             return ResponseEntity.status(HttpStatus.CREATED)
                     .body(new ApiResponse<>(true, "Detalė sėkmingai sukurta", createdDto));
         } catch (Exception e) {
@@ -80,46 +68,6 @@ public class DetaleController {
                     .body(new ApiResponse<>(false, "Klaida kuriant detalę: " + e.getMessage(), null));
         }
     }
-
-    @PostMapping("/tuščia")
-    public ResponseEntity<ApiResponse<DetaleDTO>> createDetaleTuščiojeLenteleje(@RequestBody DetaleDTO detaleDTO) {
-        try {
-            // Užtikrinam, kad būtų bent vienas automobilis
-            Automobilis automobilis = automobilisRepository.findAll().stream().findFirst().orElseGet(() -> {
-                Automobilis a = new Automobilis();
-                a.setMarke("Nenumatyta");
-                a.setVinKodas("DEFAULTVIN");
-                return automobilisRepository.save(a);
-            });
-
-            // Užtikrinam, kad būtų bent vienas sandėlys
-            Sandelys sandelys = sandelysRepository.findAll().stream().findFirst().orElseGet(() -> {
-                Sandelys s = new Sandelys();
-                s.setPavadinimas("Nenumatytas Sandėlys");
-                s.setAdresas("Nenurodytas Adresas");
-                return sandelysRepository.save(s);
-            });
-
-            // Konvertuojam, saugom, grąžinam
-            Detale detale = detaleConverter.convertToEntity(detaleDTO, automobilis, sandelys);
-            detale = detaleRepository.save(detale);
-            DetaleDTO responseDto = detaleConverter.convertToDto(detale);
-
-            return ResponseEntity.status(HttpStatus.CREATED)
-                    .body(new ApiResponse<>(true, "Detalė sėkmingai sukurta tuščioje lentelėje", responseDto));
-        } catch (Exception e) {
-            e.printStackTrace(); // ← pridėk šitą kad matytum klaidą
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(new ApiResponse<>(false, "Įvyko klaida: " + e.getMessage(), null));
-        }
-    }
-
-
-
-
-
-
-
 
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<DetaleDTO>> updateDetale(@PathVariable Long id, @RequestBody DetaleDTO detaleDTO) {
@@ -145,28 +93,9 @@ public class DetaleController {
         }
     }
 
-
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteDetale(@PathVariable Long id) {
         detaleService.deleteDetale(id);
         return ResponseEntity.ok(new ApiResponse<>(true, "Detalė sėkmingai ištrinta", null));
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

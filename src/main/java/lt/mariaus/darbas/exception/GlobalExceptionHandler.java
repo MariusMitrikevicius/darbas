@@ -21,4 +21,3 @@ public class GlobalExceptionHandler {
                 .body(new ApiResponse<>(false, "Įvyko klaida", null));
     }
 }
-

@@ -13,9 +13,6 @@ import lt.mariaus.darbas.repository.DetaleRepository;
 import lt.mariaus.darbas.repository.SandelysRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Profile;
-import org.springframework.data.crossstore.ChangeSetPersister;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import lt.mariaus.darbas.exception.NotFoundException;
 
@@ -33,7 +30,6 @@ public class DetaleService {
     private SandelysRepository sandelysRepository;
     @Autowired
     private DetaleConverter detaleConverter;
-    // Nuskaitome reikšmę iš application.properties failo.  Jei nenurodyta, numatytoji reikšmė yra "true".
     @Value("${darbas.load-test-data:true}")
     private boolean loadTestData;
 
@@ -77,29 +73,32 @@ public class DetaleService {
         return detaleRepository.save(existing);
     }
 
+    @Transactional
+    public Detale createDetaleWithDependencies(DetaleDTO detaleDTO) {
+        Automobilis automobilis = automobilisRepository.findByVinKodas(detaleDTO.getVinKodas())
+                .orElseGet(() -> {
+                    Automobilis newAutomobilis = new Automobilis();
+                    newAutomobilis.setVinKodas(detaleDTO.getVinKodas());
+                    newAutomobilis.setMarke(detaleDTO.getMarke());
+                    return automobilisRepository.save(newAutomobilis);
+                });
 
+        Sandelys sandelys = sandelysRepository.findByAdresas(detaleDTO.getSandelioAdresas())
+                .orElseGet(() -> {
+                    Sandelys newSandelys = new Sandelys();
+                    newSandelys.setPavadinimas("Automatiškai sukurtas sandėlys"); // Galite sugeneruoti pavadinimą arba naudoti default
+                    newSandelys.setAdresas(detaleDTO.getSandelioAdresas());
+                    return sandelysRepository.save(newSandelys);
+                });
 
-
+        Detale detale = detaleConverter.convertToEntity(detaleDTO, automobilis, sandelys);
+        return detaleRepository.save(detale);
+    }
 
     @PostConstruct
     @Transactional
     public void loadTestData() {
-// Tikriname, ar reikia įkelti testinius duomenis.
         if (!loadTestData) {
-            // Sukuriamas bent vienas Sandelys, jei loadTestData yra false
-            if (sandelysRepository.count() == 0) {
-                Sandelys sandelys = new Sandelys();
-                sandelys.setPavadinimas("Numatytasis Sandėlys");
-                sandelys.setAdresas("Nenurodytas Adresas");
-                sandelysRepository.save(sandelys);
-            }
-// Sukuriamas bent vienas Automobilis, jei loadTestData yra false
-            if (automobilisRepository.count() == 0) {
-                Automobilis automobilis = new Automobilis();
-                automobilis.setVinKodas("DEFAULTVIN"); // Sutrumpintas VIN kodas
-                automobilis.setMarke("Nenumatyta");
-                automobilisRepository.save(automobilis);
-            }
             return; // Jei loadTestData yra false, metodas baigia darbą.
         }
         if (detaleRepository.count() > 0) {
@@ -143,8 +142,10 @@ public class DetaleService {
             detaleRepository.save(detale);
         }
     }
+
     private static final String VIN_SYMBOLS = "ABCDEFGHJKLMNPRSTUVWXYZ0123456789"; // Be I, O, Q
     private static final Random random = new Random();
+
     private String generateRandomVin() {
         StringBuilder vin = new StringBuilder();
         for (int i = 0; i < 17; i++) {
@@ -152,6 +153,7 @@ public class DetaleService {
         }
         return vin.toString();
     }
+
     public List<Detale> searchDetales(String adresas, String marke, String vinKodas) {
         List<Detale> list = detaleRepository.findByCustomFilter(vinKodas, marke, adresas);
         System.out.println("──────────────────────────────────────────────────────────────────────────────");
@@ -172,5 +174,3 @@ public class DetaleService {
         return list;
     }
 }
-
-

@@ -19,9 +19,4 @@ public interface DetaleRepository extends JpaRepository<Detale, Long> {
             @Param("vinKodas") String vinKodas,
             @Param("marke") String marke,
             @Param("adresas") String adresas);
-
 }
-
-
-
-

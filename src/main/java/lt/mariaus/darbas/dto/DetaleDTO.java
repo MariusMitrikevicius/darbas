@@ -5,6 +5,7 @@ import lombok.Setter;
 import lt.mariaus.darbas.DetalesTipas;
 
 import java.math.BigDecimal;
+
 @Getter
 @Setter
 public class DetaleDTO {
@@ -19,5 +20,3 @@ public class DetaleDTO {
     private String sandelioAdresas;
     private DetalesTipas tipas;
 }
-
-

@@ -1,10 +1,13 @@
 package lt.mariaus.darbas.entity;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+
 import java.util.List;
+
 @Getter
 @Setter
 @Entity
@@ -21,5 +24,3 @@ public class Sandelys {
     @JsonIgnore
     private List<Detale> detales;
 }
-
-

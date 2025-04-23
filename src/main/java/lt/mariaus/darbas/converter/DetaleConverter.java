@@ -22,6 +22,7 @@ public class DetaleConverter {
         dto.setTipas(detale.getTipas());
         return dto;
     }
+
     public Detale convertToEntity(DetaleDTO detaleDTO, Automobilis automobilis, Sandelys sandelys) {
 
         Detale detale = new Detale();
@@ -34,10 +35,3 @@ public class DetaleConverter {
         return detale;
     }
 }
-
-
-
-
-
-
-

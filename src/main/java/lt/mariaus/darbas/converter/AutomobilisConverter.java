@@ -13,6 +13,7 @@ public class AutomobilisConverter {
         dto.setMarke(automobilis.getMarke());
         return dto;
     }
+
     public Automobilis toEntity(AutomobilisDTO dto) {
         Automobilis automobilis = new Automobilis();
         automobilis.setId(dto.getId());
@@ -21,4 +22,3 @@ public class AutomobilisConverter {
         return automobilis;
     }
 }
-
