@@ -2,6 +2,7 @@ package lt.mariaus.darbas.service;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.transaction.Transactional;
+import lombok.extern.log4j.Log4j2;
 import lt.mariaus.darbas.DetalesTipas;
 import lt.mariaus.darbas.converter.DetaleConverter;
 import lt.mariaus.darbas.dto.DetaleDTO;
@@ -17,10 +18,12 @@ import org.springframework.stereotype.Service;
 import lt.mariaus.darbas.exception.NotFoundException;
 
 import java.math.BigDecimal;
-import java.util.Random;
 import java.util.List;
+import java.util.Random;
 
+@Transactional
 @Service
+@Log4j2
 public class DetaleService {
     @Autowired
     private AutomobilisRepository automobilisRepository;
@@ -37,14 +40,12 @@ public class DetaleService {
         return detaleRepository.findById(id).orElse(null);
     }
 
-    @Transactional
     public void deleteDetale(Long id) {
         Detale detale = detaleRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Detalė nerasta ID: " + id));
         detaleRepository.delete(detale);
     }
 
-    @Transactional
     public Detale updateDetale(Long id, DetaleDTO dto) {
         Detale existing = detaleRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Detalė nerasta ID: " + id));
@@ -73,7 +74,6 @@ public class DetaleService {
         return detaleRepository.save(existing);
     }
 
-    @Transactional
     public Detale createDetaleWithDependencies(DetaleDTO detaleDTO) {
         Automobilis automobilis = automobilisRepository.findByVinKodas(detaleDTO.getVinKodas())
                 .orElseGet(() -> {
@@ -96,7 +96,7 @@ public class DetaleService {
     }
 
     @PostConstruct
-    @Transactional
+
     public void loadTestData() {
         if (!loadTestData) {
             return; // Jei loadTestData yra false, metodas baigia darbą.
@@ -156,10 +156,10 @@ public class DetaleService {
 
     public List<Detale> searchDetales(String adresas, String marke, String vinKodas) {
         List<Detale> list = detaleRepository.findByCustomFilter(vinKodas, marke, adresas);
-        System.out.println("──────────────────────────────────────────────────────────────────────────────");
+        log.info("──────────────────────────────────────────────────────────────────────────────");
         System.out.printf("| %-3s | %-20s | %-10s | %-6s | %-10s | %-15s |\n",
                 "ID", "Pavadinimas", "Kaina", "Kiekis", "Markė", "Sandėlys");
-        System.out.println("──────────────────────────────────────────────────────────────────────────────");
+        log.info("──────────────────────────────────────────────────────────────────────────────");
         for (Detale d : list) {
             System.out.printf("| %-3d | %-20s | %-10s | %-6d | %-10s | %-15s |\n",
                     d.getId(),
@@ -170,7 +170,8 @@ public class DetaleService {
                     d.getSandelys().getPavadinimas()
             );
         }
-        System.out.println("──────────────────────────────────────────────────────────────────────────────");
+        log.info("──────────────────────────────────────────────────────────────────────────────");
+
         return list;
     }
 }

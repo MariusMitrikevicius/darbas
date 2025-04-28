@@ -5,11 +5,7 @@ import lt.mariaus.darbas.ApiResponse;
 import lt.mariaus.darbas.converter.DetaleConverter;
 import lt.mariaus.darbas.dto.DetaleDTO;
 import lt.mariaus.darbas.entity.Detale;
-import lt.mariaus.darbas.repository.AutomobilisRepository;
-import lt.mariaus.darbas.repository.DetaleRepository;
-import lt.mariaus.darbas.repository.SandelysRepository;
 import lt.mariaus.darbas.service.DetaleService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,12 +16,9 @@ import java.util.List;
 @RequestMapping("/detales")
 @RequiredArgsConstructor
 public class DetaleController {
-    @Autowired
+
     private final DetaleService detaleService;
     private final DetaleConverter detaleConverter;
-    private final AutomobilisRepository automobilisRepository;
-    private final SandelysRepository sandelysRepository;
-    private final DetaleRepository detaleRepository;
 
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<DetaleDTO>> getDetaleById(@PathVariable Long id) {

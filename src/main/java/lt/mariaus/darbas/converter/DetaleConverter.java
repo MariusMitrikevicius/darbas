@@ -17,8 +17,10 @@ public class DetaleConverter {
         dto.setAutomobilisId(detale.getAutomobilis().getId());
         dto.setMarke(detale.getAutomobilis().getMarke());
         dto.setVinKodas(detale.getAutomobilis().getVinKodas());
-        dto.setSandelysId(detale.getSandelys().getId());
-        dto.setSandelioAdresas(detale.getSandelys().getAdresas());
+        if (detale.getSandelys() != null) {
+            dto.setSandelysId(detale.getSandelys().getId());
+            dto.setSandelioAdresas(detale.getSandelys().getAdresas());
+        }
         dto.setTipas(detale.getTipas());
         return dto;
     }

@@ -13,6 +13,7 @@ public class SandelysConverter {
         dto.setAdresas(sandelys.getAdresas());
         return dto;
     }
+
     public Sandelys toEntity(SandelysDTO dto) {
         Sandelys sandelys = new Sandelys();
         sandelys.setId(dto.getId());
@@ -21,6 +22,3 @@ public class SandelysConverter {
         return sandelys;
     }
 }
-
-
-
